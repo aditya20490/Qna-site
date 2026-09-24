@@ -258,6 +258,9 @@ detectSessionInUrl:true
 });
 
 
+let userRealtimeChannel = null;
+
+
 function escapeHTML(text){
 
 return String(text)
@@ -280,10 +283,12 @@ document
 .getElementById("appCard")
 .classList.add("hidden");
 
+stopUserRealtime();
+
 }
 
 
-function showApp(){
+async function showApp(){
 
 document
 .getElementById("authCard")
@@ -293,7 +298,21 @@ document
 .getElementById("appCard")
 .classList.remove("hidden");
 
+
+const {
+data:{user}
+} =
+await supabaseClient.auth.getUser();
+
+
+if(!user){
+return;
+}
+
+
 loadQuestions();
+
+startUserRealtime(user.id);
 
 }
 
@@ -303,7 +322,10 @@ function showAuthMessage(message){
 document
 .getElementById("authMessage")
 .innerHTML =
-`<div class="message">${escapeHTML(message)}</div>`;
+message
+?
+`<div class="message">${escapeHTML(message)}</div>`
+:"";
 
 }
 
@@ -313,7 +335,113 @@ function showAppMessage(message){
 document
 .getElementById("appMessage")
 .innerHTML =
-`<div class="message">${escapeHTML(message)}</div>`;
+message
+?
+`<div class="message">${escapeHTML(message)}</div>`
+:"";
+
+}
+
+
+/* STOP USER REALTIME */
+
+function stopUserRealtime(){
+
+if(userRealtimeChannel){
+
+supabaseClient.removeChannel(
+userRealtimeChannel
+);
+
+userRealtimeChannel = null;
+
+}
+
+}
+
+
+/* START USER REALTIME */
+
+function startUserRealtime(userId){
+
+stopUserRealtime();
+
+
+userRealtimeChannel =
+supabaseClient
+.channel(`user-questions-${userId}`)
+.on(
+"postgres_changes",
+{
+event:"UPDATE",
+schema:"public",
+table:"questions",
+filter:`user_id=eq.${userId}`
+},
+async(payload)=>{
+
+loadQuestions();
+
+
+const newAnswer =
+payload?.new?.answer || "";
+
+const oldAnswer =
+payload?.old?.answer || "";
+
+
+/* SHOW MESSAGE WHEN A NEW ANSWER ARRIVES */
+
+if(
+newAnswer &&
+newAnswer !== oldAnswer
+){
+
+showAppMessage(
+"Aditya has answered your question!"
+);
+
+
+/* BROWSER NOTIFICATION */
+
+if(
+"Notification" in window &&
+Notification.permission === "granted"
+){
+
+try{
+
+new Notification(
+"Aditya Contact Portal",
+{
+body:"Aditya has answered your question."
+}
+);
+
+}catch(error){
+
+console.warn(
+"Notification could not be shown:",
+error
+);
+
+}
+
+}
+
+}
+
+}
+)
+.subscribe((status)=>{
+
+console.log(
+"User realtime status:",
+status
+);
+
+});
+
 
 }
 
@@ -549,6 +677,8 @@ document
 .getElementById("logoutButton")
 .addEventListener("click",async()=>{
 
+stopUserRealtime();
+
 await supabaseClient.auth.signOut();
 
 showAuth();
@@ -634,7 +764,18 @@ if(
 Notification.permission==="default"
 ){
 
+try{
+
 await Notification.requestPermission();
+
+}catch(error){
+
+console.warn(
+"Notification permission request failed:",
+error
+);
+
+}
 
 }
 
