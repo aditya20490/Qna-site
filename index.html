@@ -245,6 +245,12 @@ const GOOGLE_CLIENT_ID =
 "864938013815-5t6so61a15m2luva7r94jsthj5ib6o2r.apps.googleusercontent.com";
 
 
+/* VAPID PUBLIC KEY */
+
+const VAPID_PUBLIC_KEY =
+"BB2IJuzO__vQvpoxHRxpUYGNJKM-XYQydJrRjuVp8cdQT7rCtVCG3ugg_ga-5rXBxQCPVPo9lLzwgEz8RFwINag";
+
+
 const supabaseClient =
 window.supabase.createClient(
 SUPABASE_URL,
@@ -261,6 +267,8 @@ detectSessionInUrl:true
 let userRealtimeChannel = null;
 
 
+/* ESCAPE HTML */
+
 function escapeHTML(text){
 
 return String(text)
@@ -272,6 +280,8 @@ return String(text)
 
 }
 
+
+/* AUTH SCREEN */
 
 function showAuth(){
 
@@ -287,6 +297,8 @@ stopUserRealtime();
 
 }
 
+
+/* APP SCREEN */
 
 async function showApp(){
 
@@ -317,6 +329,8 @@ startUserRealtime(user.id);
 }
 
 
+/* AUTH MESSAGE */
+
 function showAuthMessage(message){
 
 document
@@ -329,6 +343,8 @@ message
 
 }
 
+
+/* APP MESSAGE */
 
 function showAppMessage(message){
 
@@ -390,8 +406,6 @@ const oldAnswer =
 payload?.old?.answer || "";
 
 
-/* SHOW MESSAGE WHEN A NEW ANSWER ARRIVES */
-
 if(
 newAnswer &&
 newAnswer !== oldAnswer
@@ -401,8 +415,6 @@ showAppMessage(
 "Aditya has answered your question!"
 );
 
-
-/* BROWSER NOTIFICATION */
 
 if(
 "Notification" in window &&
@@ -442,6 +454,195 @@ status
 
 });
 
+}
+
+
+/* CONVERT VAPID KEY */
+
+function urlBase64ToUint8Array(base64String){
+
+const padding =
+"=".repeat(
+(4 - base64String.length % 4) % 4
+);
+
+const base64 =
+(
+base64String +
+padding
+)
+.replace(/-/g,"+")
+.replace(/_/g,"/");
+
+const rawData =
+window.atob(base64);
+
+const outputArray =
+new Uint8Array(
+rawData.length
+);
+
+for(
+let i=0;
+i<rawData.length;
+++i
+){
+
+outputArray[i] =
+rawData.charCodeAt(i);
+
+}
+
+return outputArray;
+
+}
+
+
+/* SET UP REAL PUSH NOTIFICATIONS */
+
+async function setupPushNotifications(user){
+
+try{
+
+if(
+!("serviceWorker" in navigator) ||
+!("PushManager" in window) ||
+!("Notification" in window)
+){
+
+console.warn(
+"Push notifications are not supported by this browser."
+);
+
+return false;
+
+}
+
+
+/* REGISTER SERVICE WORKER */
+
+const registration =
+await navigator.serviceWorker.register(
+"/Qna-site/sw.js"
+);
+
+console.log(
+"Service worker registered:",
+registration.scope
+);
+
+
+/* ASK FOR NOTIFICATION PERMISSION */
+
+if(
+Notification.permission === "default"
+){
+
+const permission =
+await Notification.requestPermission();
+
+if(permission !== "granted"){
+
+console.log(
+"Notification permission was not granted."
+);
+
+return false;
+
+}
+
+}
+
+
+if(
+Notification.permission !== "granted"
+){
+
+return false;
+
+}
+
+
+/* GET EXISTING SUBSCRIPTION */
+
+let subscription =
+await registration.pushManager.getSubscription();
+
+
+/* CREATE NEW SUBSCRIPTION */
+
+if(!subscription){
+
+subscription =
+await registration.pushManager.subscribe({
+
+userVisibleOnly:true,
+
+applicationServerKey:
+urlBase64ToUint8Array(
+VAPID_PUBLIC_KEY
+)
+
+});
+
+}
+
+
+/* SAVE SUBSCRIPTION IN SUPABASE */
+
+const {
+error
+} =
+await supabaseClient
+.from("push_subscriptions")
+.upsert(
+{
+user_id:user.id,
+
+subscription:
+subscription.toJSON(),
+
+updated_at:
+new Date().toISOString()
+},
+{
+onConflict:"user_id"
+}
+);
+
+
+if(error){
+
+console.error(
+"Could not save push subscription:",
+error
+);
+
+showAppMessage(
+"Question submitted, but notification setup failed."
+);
+
+return false;
+
+}
+
+
+console.log(
+"Push subscription saved successfully."
+);
+
+return true;
+
+}catch(error){
+
+console.error(
+"Push notification setup failed:",
+error
+);
+
+return false;
+
+}
 
 }
 
@@ -460,7 +661,9 @@ return;
 
 }
 
-showAuthMessage("Signing you in with Google...");
+showAuthMessage(
+"Signing you in with Google..."
+);
 
 
 const {data,error} =
@@ -505,7 +708,10 @@ if(
 !window.google.accounts.id
 ){
 
-setTimeout(initializeGoogle,500);
+setTimeout(
+initializeGoogle,
+500
+);
 
 return;
 
@@ -515,7 +721,8 @@ window.google.accounts.id.initialize({
 
 client_id:GOOGLE_CLIENT_ID,
 
-callback:handleGoogleCredential,
+callback:
+handleGoogleCredential,
 
 auto_select:false,
 
@@ -527,12 +734,17 @@ use_fedcm_for_prompt:true
 
 
 const box =
-document.getElementById("googleButton");
+document.getElementById(
+"googleButton"
+);
 
 const width =
 Math.min(
 400,
-Math.max(240,box.clientWidth || 320)
+Math.max(
+240,
+box.clientWidth || 320
+)
 );
 
 
@@ -558,15 +770,19 @@ logo_alignment:"left"
 
 document
 .getElementById("signupButton")
-.addEventListener("click",async()=>{
+.addEventListener(
+"click",
+async()=>{
 
 const email =
-document.getElementById("email")
+document
+.getElementById("email")
 .value
 .trim();
 
 const password =
-document.getElementById("password")
+document
+.getElementById("password")
 .value;
 
 if(!email || !password){
@@ -596,7 +812,9 @@ emailRedirectTo:
 
 if(error){
 
-showAuthMessage(error.message);
+showAuthMessage(
+error.message
+);
 
 return;
 
@@ -622,15 +840,19 @@ showAuthMessage(
 
 document
 .getElementById("loginButton")
-.addEventListener("click",async()=>{
+.addEventListener(
+"click",
+async()=>{
 
 const email =
-document.getElementById("email")
+document
+.getElementById("email")
 .value
 .trim();
 
 const password =
-document.getElementById("password")
+document
+.getElementById("password")
 .value;
 
 if(!email || !password){
@@ -655,7 +877,9 @@ password
 
 if(error){
 
-showAuthMessage(error.message);
+showAuthMessage(
+error.message
+);
 
 return;
 
@@ -675,7 +899,9 @@ showApp();
 
 document
 .getElementById("logoutButton")
-.addEventListener("click",async()=>{
+.addEventListener(
+"click",
+async()=>{
 
 stopUserRealtime();
 
@@ -690,13 +916,18 @@ showAuth();
 
 document
 .getElementById("submitButton")
-.addEventListener("click",async()=>{
+.addEventListener(
+"click",
+async()=>{
 
 const input =
-document.getElementById("questionInput");
+document.getElementById(
+"questionInput"
+);
 
 const question =
 input.value.trim();
+
 
 if(!question){
 
@@ -726,6 +957,8 @@ return;
 }
 
 
+/* SUBMIT QUESTION */
+
 const {error} =
 await supabaseClient
 .from("questions")
@@ -754,30 +987,18 @@ return;
 
 input.value="";
 
+
 showAppMessage(
 "Question submitted successfully!"
 );
 
 
-if(
-"Notification" in window &&
-Notification.permission==="default"
-){
+/*
+  PUSH SETUP IS DONE HERE BECAUSE
+  THIS CLICK IS A USER GESTURE.
+*/
 
-try{
-
-await Notification.requestPermission();
-
-}catch(error){
-
-console.warn(
-"Notification permission request failed:",
-error
-);
-
-}
-
-}
+await setupPushNotifications(user);
 
 
 loadQuestions();
@@ -805,11 +1026,16 @@ await supabaseClient
 .from("questions")
 .select("*")
 .eq("user_id",user.id)
-.order("created_at",{ascending:false});
+.order(
+"created_at",
+{ascending:false}
+);
 
 
 const list =
-document.getElementById("questionsList");
+document.getElementById(
+"questionsList"
+);
 
 
 if(error){
@@ -840,7 +1066,9 @@ list.innerHTML="";
 data.forEach(item=>{
 
 const div =
-document.createElement("div");
+document.createElement(
+"div"
+);
 
 div.className="question";
 
@@ -910,7 +1138,8 @@ await supabaseClient.auth.getSession();
 if(error){
 
 showAuthMessage(
-"Session error: " + error.message
+"Session error: " +
+error.message
 );
 
 return;
