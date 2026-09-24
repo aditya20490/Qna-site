@@ -6,6 +6,7 @@
 <title>Aditya Contact Portal</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 
 <style>
 *{box-sizing:border-box}
@@ -22,7 +23,10 @@ body{
   padding:20px
 }
 
-.container{width:100%;max-width:520px}
+.container{
+  width:100%;
+  max-width:520px
+}
 
 .card{
   background:#15151c;
@@ -32,8 +36,14 @@ body{
   box-shadow:0 20px 60px rgba(0,0,0,.35)
 }
 
-h1{margin:0 0 8px;font-size:30px}
-h2{margin-top:30px}
+h1{
+  margin:0 0 8px;
+  font-size:30px
+}
+
+h2{
+  margin-top:30px
+}
 
 .subtitle{
   color:#9999a8;
@@ -68,9 +78,15 @@ button{
   margin-top:8px
 }
 
-.google{background:white;color:black}
-.primary{background:#6c63ff;color:white}
-.secondary{background:#292934;color:white}
+.primary{
+  background:#6c63ff;
+  color:white
+}
+
+.secondary{
+  background:#292934;
+  color:white
+}
 
 .divider{
   text-align:center;
@@ -78,7 +94,9 @@ button{
   margin:18px 0
 }
 
-.hidden{display:none}
+.hidden{
+  display:none
+}
 
 .message{
   margin-top:15px;
@@ -88,6 +106,13 @@ button{
   color:#ddd;
   font-size:14px;
   line-height:1.5
+}
+
+.google-box{
+  display:flex;
+  justify-content:center;
+  width:100%;
+  min-height:44px
 }
 
 .question{
@@ -120,6 +145,7 @@ button{
   display:flex;
   justify-content:space-between;
   align-items:center;
+  gap:15px;
   margin-bottom:20px
 }
 
@@ -144,15 +170,21 @@ button{
 Sign in to ask your question.
 </div>
 
-<button id="googleButton" class="google">
-Continue with Google
-</button>
+<div id="googleButton" class="google-box"></div>
 
 <div class="divider">OR</div>
 
-<input id="email" type="email" placeholder="Email address">
+<input
+id="email"
+type="email"
+placeholder="Email address"
+>
 
-<input id="password" type="password" placeholder="Password">
+<input
+id="password"
+type="password"
+placeholder="Password"
+>
 
 <button id="loginButton" class="primary">
 Login
@@ -209,6 +241,10 @@ const SUPABASE_URL =
 const SUPABASE_KEY =
 "sb_publishable_ZtJM6KEEhaGrClvzLkJXpg_Usb7T0ZK";
 
+const GOOGLE_CLIENT_ID =
+"864938013815-5t6so61a15m2luva7r94jsthj5ib6o2r.apps.googleusercontent.com";
+
+
 const supabaseClient =
 window.supabase.createClient(
 SUPABASE_URL,
@@ -220,46 +256,6 @@ autoRefreshToken:true,
 detectSessionInUrl:true
 }
 });
-
-
-function showAuth(){
-
-document.getElementById("authCard")
-.classList.remove("hidden");
-
-document.getElementById("appCard")
-.classList.add("hidden");
-
-}
-
-
-function showApp(){
-
-document.getElementById("authCard")
-.classList.add("hidden");
-
-document.getElementById("appCard")
-.classList.remove("hidden");
-
-loadQuestions();
-
-}
-
-
-function showAuthMessage(message){
-
-document.getElementById("authMessage").innerHTML =
-`<div class="message">${escapeHTML(message)}</div>`;
-
-}
-
-
-function showAppMessage(message){
-
-document.getElementById("appMessage").innerHTML =
-`<div class="message">${escapeHTML(message)}</div>`;
-
-}
 
 
 function escapeHTML(text){
@@ -274,33 +270,160 @@ return String(text)
 }
 
 
-/* GOOGLE */
+function showAuth(){
 
 document
-.getElementById("googleButton")
-.addEventListener("click",async()=>{
+.getElementById("authCard")
+.classList.remove("hidden");
 
-const {error} =
-await supabaseClient.auth.signInWithOAuth({
+document
+.getElementById("appCard")
+.classList.add("hidden");
+
+}
+
+
+function showApp(){
+
+document
+.getElementById("authCard")
+.classList.add("hidden");
+
+document
+.getElementById("appCard")
+.classList.remove("hidden");
+
+loadQuestions();
+
+}
+
+
+function showAuthMessage(message){
+
+document
+.getElementById("authMessage")
+.innerHTML =
+`<div class="message">${escapeHTML(message)}</div>`;
+
+}
+
+
+function showAppMessage(message){
+
+document
+.getElementById("appMessage")
+.innerHTML =
+`<div class="message">${escapeHTML(message)}</div>`;
+
+}
+
+
+/* GOOGLE SIGN-IN */
+
+async function handleGoogleCredential(response){
+
+if(!response || !response.credential){
+
+showAuthMessage(
+"Google sign-in did not return a credential."
+);
+
+return;
+
+}
+
+showAuthMessage("Signing you in with Google...");
+
+
+const {data,error} =
+await supabaseClient.auth.signInWithIdToken({
 
 provider:"google",
 
-options:{
-redirectTo:"https://aditya20490.github.io/Qna-site/",
-skipBrowserRedirect:false
-}
+token:response.credential
 
 });
+
 
 if(error){
 
 showAuthMessage(
-"Google login error: "+error.message
+"Google login error: " + error.message
 );
+
+return;
 
 }
 
+
+if(data.session){
+
+showAuthMessage("");
+
+showApp();
+
+}
+
+}
+
+
+/* GOOGLE BUTTON */
+
+function initializeGoogle(){
+
+if(
+!window.google ||
+!window.google.accounts ||
+!window.google.accounts.id
+){
+
+setTimeout(initializeGoogle,500);
+
+return;
+
+}
+
+window.google.accounts.id.initialize({
+
+client_id:GOOGLE_CLIENT_ID,
+
+callback:handleGoogleCredential,
+
+auto_select:false,
+
+cancel_on_tap_outside:true,
+
+use_fedcm_for_prompt:true
+
 });
+
+
+const box =
+document.getElementById("googleButton");
+
+const width =
+Math.min(
+400,
+Math.max(240,box.clientWidth || 320)
+);
+
+
+window.google.accounts.id.renderButton(
+
+box,
+
+{
+theme:"outline",
+size:"large",
+width:width,
+text:"continue_with",
+shape:"rectangular",
+logo_alignment:"left"
+}
+
+);
+
+}
 
 
 /* EMAIL SIGNUP */
@@ -310,10 +433,13 @@ document
 .addEventListener("click",async()=>{
 
 const email =
-document.getElementById("email").value.trim();
+document.getElementById("email")
+.value
+.trim();
 
 const password =
-document.getElementById("password").value;
+document.getElementById("password")
+.value;
 
 if(!email || !password){
 
@@ -325,20 +451,38 @@ return;
 
 }
 
-const {error} =
+
+const {data,error} =
 await supabaseClient.auth.signUp({
+
 email,
-password
+password,
+
+options:{
+emailRedirectTo:
+"https://aditya20490.github.io/Qna-site/"
+}
+
 });
+
 
 if(error){
 
 showAuthMessage(error.message);
 
+return;
+
+}
+
+
+if(data.session){
+
+showApp();
+
 }else{
 
 showAuthMessage(
-"Account created. Check your email."
+"Account created. Check your email to confirm it."
 );
 
 }
@@ -353,10 +497,13 @@ document
 .addEventListener("click",async()=>{
 
 const email =
-document.getElementById("email").value.trim();
+document.getElementById("email")
+.value
+.trim();
 
 const password =
-document.getElementById("password").value;
+document.getElementById("password")
+.value;
 
 if(!email || !password){
 
@@ -368,15 +515,28 @@ return;
 
 }
 
-const {error} =
+
+const {data,error} =
 await supabaseClient.auth.signInWithPassword({
+
 email,
 password
+
 });
+
 
 if(error){
 
 showAuthMessage(error.message);
+
+return;
+
+}
+
+
+if(data.session){
+
+showApp();
 
 }
 
@@ -418,10 +578,12 @@ return;
 
 }
 
+
 const {
 data:{user}
 } =
 await supabaseClient.auth.getUser();
+
 
 if(!user){
 
@@ -433,30 +595,39 @@ return;
 
 }
 
+
 const {error} =
 await supabaseClient
 .from("questions")
 .insert({
 
 question:question,
+
 user_id:user.id,
+
 status:"pending"
 
 });
 
+
 if(error){
 
-showAppMessage(error.message);
+showAppMessage(
+"Could not submit question: " +
+error.message
+);
 
 return;
 
 }
+
 
 input.value="";
 
 showAppMessage(
 "Question submitted successfully!"
 );
+
 
 if(
 "Notification" in window &&
@@ -466,6 +637,7 @@ Notification.permission==="default"
 await Notification.requestPermission();
 
 }
+
 
 loadQuestions();
 
@@ -483,6 +655,7 @@ await supabaseClient.auth.getUser();
 
 if(!user)return;
 
+
 const {
 data,
 error
@@ -493,8 +666,10 @@ await supabaseClient
 .eq("user_id",user.id)
 .order("created_at",{ascending:false});
 
+
 const list =
 document.getElementById("questionsList");
+
 
 if(error){
 
@@ -507,6 +682,7 @@ return;
 
 }
 
+
 if(!data || data.length===0){
 
 list.innerHTML =
@@ -516,13 +692,17 @@ return;
 
 }
 
+
 list.innerHTML="";
+
 
 data.forEach(item=>{
 
-const div=document.createElement("div");
+const div =
+document.createElement("div");
 
 div.className="question";
+
 
 div.innerHTML=`
 
@@ -531,7 +711,8 @@ ${escapeHTML(item.question)}
 </div>
 
 <div class="status">
-Status: ${escapeHTML(item.status || "pending")}
+Status:
+${escapeHTML(item.status || "pending")}
 </div>
 
 ${
@@ -547,6 +728,7 @@ ${escapeHTML(item.answer)}
 }
 
 `;
+
 
 list.appendChild(div);
 
@@ -583,15 +765,17 @@ error
 } =
 await supabaseClient.auth.getSession();
 
+
 if(error){
 
 showAuthMessage(
-"Session error: "+error.message
+"Session error: " + error.message
 );
 
 return;
 
 }
+
 
 if(session){
 
@@ -605,7 +789,10 @@ showAuth();
 
 }
 
+
 startApp();
+
+initializeGoogle();
 
 </script>
 
