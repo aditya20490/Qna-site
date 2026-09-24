@@ -143,6 +143,17 @@
       color: #6b7280;
       text-align: center;
     }
+
+    .live {
+      display: inline-block;
+      margin-left: 8px;
+      padding: 5px 9px;
+      border-radius: 20px;
+      background: #dcfce7;
+      color: #166534;
+      font-size: 12px;
+      font-weight: 600;
+    }
   </style>
 </head>
 
@@ -152,8 +163,14 @@
 
   <div class="topbar">
     <div>
-      <h1>Aditya Admin Panel</h1>
-      <div class="subtitle">Manage questions submitted by users</div>
+      <h1>
+        Aditya Admin Panel
+        <span class="live">LIVE</span>
+      </h1>
+
+      <div class="subtitle">
+        Manage questions submitted by users
+      </div>
     </div>
 
     <div>
@@ -171,20 +188,26 @@
 </div>
 
 <script>
-  const SUPABASE_URL = "https://sklysjwjztklmbaxwjtj.supabase.co";
+  const SUPABASE_URL =
+    "https://sklysjwjztklmbaxwjtj.supabase.co";
 
   const SUPABASE_ANON_KEY =
     "sb_publishable_ZtJM6KEEhaGrClvzLkJXpg_Usb7T0ZK";
 
-  const supabaseClient = window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_ANON_KEY
-  );
+  const ADMIN_ID =
+    "01d5205d-a9c3-4a83-90da-fde7ad021f01";
 
-  const ADMIN_ID = "01d5205d-a9c3-4a83-90da-fde7ad021f01";
+  const supabaseClient =
+    window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_ANON_KEY
+    );
 
-  const container = document.getElementById("questionsContainer");
-  const message = document.getElementById("message");
+  const container =
+    document.getElementById("questionsContainer");
+
+  const message =
+    document.getElementById("message");
 
   function showMessage(text, type) {
     message.textContent = text;
@@ -196,7 +219,14 @@
     }, 4000);
   }
 
+  function escapeHtml(text) {
+    const div = document.createElement("div");
+    div.textContent = text ?? "";
+    return div.innerHTML;
+  }
+
   async function checkAdmin() {
+
     const {
       data: { session }
     } = await supabaseClient.auth.getSession();
@@ -207,8 +237,10 @@
     }
 
     if (session.user.id !== ADMIN_ID) {
+
       container.innerHTML =
         '<div class="empty">Access denied. This account is not the admin.</div>';
+
       return false;
     }
 
@@ -216,6 +248,7 @@
   }
 
   async function loadQuestions() {
+
     container.innerHTML =
       '<div class="empty">Loading questions...</div>';
 
@@ -223,67 +256,94 @@
 
     if (!allowed) return;
 
-    const { data, error } = await supabaseClient
-      .from("questions")
-      .select("*")
-      .order("created_at", { ascending: false });
+    const { data, error } =
+      await supabaseClient
+        .from("questions")
+        .select("*")
+        .order("created_at", {
+          ascending: false
+        });
 
     if (error) {
+
       container.innerHTML =
         '<div class="empty">Error loading questions: ' +
-        error.message +
+        escapeHtml(error.message) +
         '</div>';
+
       return;
     }
 
+    renderQuestions(data || []);
+  }
+
+  function renderQuestions(data) {
+
     if (!data || data.length === 0) {
+
       container.innerHTML =
         '<div class="empty">No questions have been submitted yet.</div>';
+
       return;
     }
 
     container.innerHTML = "";
 
     data.forEach(q => {
-      const card = document.createElement("div");
+
+      const card =
+        document.createElement("div");
+
       card.className = "question-card";
 
-      const date = new Date(q.created_at).toLocaleString();
+      const date =
+        new Date(q.created_at).toLocaleString();
 
       card.innerHTML = `
-        <div class="question">${escapeHtml(q.question)}</div>
+
+        <div class="question">
+          ${escapeHtml(q.question)}
+        </div>
 
         <div class="meta">
-          User ID: ${escapeHtml(q.user_id || "Unknown")}<br>
-          Submitted: ${escapeHtml(date)}
+          User ID:
+          ${escapeHtml(q.user_id || "Unknown")}
+          <br>
+          Submitted:
+          ${escapeHtml(date)}
         </div>
 
         <div class="status">
-          Status: ${escapeHtml(q.status || "pending")}
+          Status:
+          ${escapeHtml(q.status || "pending")}
         </div>
 
         ${
           q.answer
-            ? `
-              <div class="answer">
-                <strong>Your answer:</strong><br><br>
-                ${escapeHtml(q.answer)}
-              </div>
-            `
-            : `
-              <textarea
-                id="answer-${q.id}"
-                placeholder="Write your answer here..."
-              ></textarea>
+          ?
+          `
+            <div class="answer">
+              <strong>Your answer:</strong>
+              <br><br>
+              ${escapeHtml(q.answer)}
+            </div>
+          `
+          :
+          `
+            <textarea
+              id="answer-${q.id}"
+              placeholder="Write your answer here..."
+            ></textarea>
 
-              <button
-                class="answer-btn"
-                onclick="submitAnswer(${q.id})"
-              >
-                Send Answer
-              </button>
-            `
+            <button
+              class="answer-btn"
+              onclick="submitAnswer(${q.id})"
+            >
+              Send Answer
+            </button>
+          `
         }
+
       `;
 
       container.appendChild(card);
@@ -291,56 +351,119 @@
   }
 
   async function submitAnswer(questionId) {
-    const textarea = document.getElementById("answer-" + questionId);
+
+    const textarea =
+      document.getElementById(
+        "answer-" + questionId
+      );
 
     if (!textarea) return;
 
-    const answer = textarea.value.trim();
+    const answer =
+      textarea.value.trim();
 
     if (!answer) {
-      showMessage("Please write an answer first.", "error");
-      return;
-    }
 
-    const { error } = await supabaseClient
-      .from("questions")
-      .update({
-        answer: answer,
-        status: "answered"
-      })
-      .eq("id", questionId);
-
-    if (error) {
       showMessage(
-        "Could not save answer: " + error.message,
+        "Please write an answer first.",
         "error"
       );
+
       return;
     }
 
-    showMessage("Answer saved successfully!", "success");
+    const { error } =
+      await supabaseClient
+        .from("questions")
+        .update({
+          answer: answer,
+          status: "answered"
+        })
+        .eq("id", questionId);
 
-    loadQuestions();
-  }
+    if (error) {
 
-  function escapeHtml(text) {
-    const div = document.createElement("div");
-    div.textContent = text ?? "";
-    return div.innerHTML;
+      showMessage(
+        "Could not save answer: " +
+        error.message,
+        "error"
+      );
+
+      return;
+    }
+
+    showMessage(
+      "Answer saved successfully!",
+      "success"
+    );
+
+    await loadQuestions();
   }
 
   document
     .getElementById("refreshBtn")
-    .addEventListener("click", loadQuestions);
+    .addEventListener(
+      "click",
+      loadQuestions
+    );
 
   document
     .getElementById("logoutBtn")
-    .addEventListener("click", async () => {
-      await supabaseClient.auth.signOut();
-      window.location.href = "index.html";
-    });
+    .addEventListener(
+      "click",
+      async () => {
+
+        await supabaseClient.auth.signOut();
+
+        window.location.href =
+          "index.html";
+      }
+    );
+
+  async function startRealtime() {
+
+    const allowed =
+      await checkAdmin();
+
+    if (!allowed) return;
+
+    supabaseClient
+      .channel("admin-questions")
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "questions"
+        },
+        payload => {
+
+          showMessage(
+            "New question received!",
+            "success"
+          );
+
+          loadQuestions();
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "questions"
+        },
+        payload => {
+
+          loadQuestions();
+        }
+      )
+      .subscribe();
+  }
 
   loadQuestions();
+  startRealtime();
+
 </script>
 
 </body>
