@@ -3,10 +3,571 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>Aditya Contact Portal</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+      background: #0b0b0f;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 500px;
+    }
+
+    .card {
+      background: #15151c;
+      border: 1px solid #292934;
+      border-radius: 20px;
+      padding: 28px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.35);
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 30px;
+    }
+
+    .subtitle {
+      color: #9999a8;
+      margin-bottom: 25px;
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      background: #0d0d12;
+      color: white;
+      border: 1px solid #30303b;
+      border-radius: 12px;
+      padding: 14px;
+      font-size: 15px;
+      outline: none;
+      margin-bottom: 12px;
+    }
+
+    textarea {
+      min-height: 130px;
+      resize: vertical;
+    }
+
+    input:focus,
+    textarea:focus {
+      border-color: #7777ff;
+    }
+
+    button {
+      width: 100%;
+      border: 0;
+      border-radius: 12px;
+      padding: 14px;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+
+    .google {
+      background: white;
+      color: black;
+    }
+
+    .primary {
+      background: #6c63ff;
+      color: white;
+    }
+
+    .secondary {
+      background: #292934;
+      color: white;
+    }
+
+    .divider {
+      text-align: center;
+      color: #777783;
+      margin: 18px 0;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .message {
+      margin-top: 15px;
+      padding: 12px;
+      border-radius: 10px;
+      background: #20202a;
+      color: #ddd;
+      font-size: 14px;
+    }
+
+    .question {
+      background: #0d0d12;
+      border: 1px solid #292934;
+      border-radius: 12px;
+      padding: 15px;
+      margin-top: 12px;
+    }
+
+    .question-text {
+      margin-bottom: 10px;
+      line-height: 1.5;
+    }
+
+    .status {
+      font-size: 13px;
+      color: #9999a8;
+    }
+
+    .answer {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid #292934;
+      color: #d8d8ff;
+      line-height: 1.5;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .logout {
+      width: auto;
+      padding: 8px 12px;
+      margin: 0;
+      font-size: 13px;
+    }
+  </style>
 </head>
+
 <body>
-  <h1>Aditya Contact Portal</h1>
-  <p>Website coming soon.</p>
+
+<div class="container">
+
+  <!-- LOGIN -->
+  <div id="authCard" class="card">
+
+    <h1>Contact Aditya</h1>
+    <div class="subtitle">
+      Sign in to ask your question.
+    </div>
+
+    <button class="google" onclick="googleLogin()">
+      Continue with Google
+    </button>
+
+    <div class="divider">OR</div>
+
+    <input
+      id="email"
+      type="email"
+      placeholder="Email address"
+    >
+
+    <input
+      id="password"
+      type="password"
+      placeholder="Password"
+    >
+
+    <button class="primary" onclick="emailLogin()">
+      Login
+    </button>
+
+    <button class="secondary" onclick="emailSignup()">
+      Create account
+    </button>
+
+    <div id="authMessage"></div>
+
+  </div>
+
+
+  <!-- APP -->
+  <div id="appCard" class="card hidden">
+
+    <div class="topbar">
+      <div>
+        <h1>Ask a Question</h1>
+      </div>
+
+      <button
+        class="secondary logout"
+        onclick="logout()">
+        Logout
+      </button>
+    </div>
+
+    <textarea
+      id="questionInput"
+      placeholder="Write your question here..."
+    ></textarea>
+
+    <button
+      class="primary"
+      onclick="submitQuestion()">
+      Send Question
+    </button>
+
+    <div id="appMessage"></div>
+
+    <h2 style="margin-top:30px;">
+      My Questions
+    </h2>
+
+    <div id="questionsList">
+      Loading...
+    </div>
+
+  </div>
+
+</div>
+
+
+<script>
+
+const SUPABASE_URL =
+  "https://sklysjwjztklmbaxwjtj.supabase.co";
+
+const SUPABASE_KEY =
+  "sb_publishable_ZtJM6KEEhaGrClvzLkJXpg_Usb7T0ZK";
+
+const supabaseClient =
+  supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
+
+
+/* GOOGLE LOGIN */
+
+async function googleLogin() {
+
+  const { error } =
+    await supabaseClient.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: window.location.href
+      }
+    });
+
+  if (error) {
+    showAuthMessage(error.message);
+  }
+}
+
+
+/* EMAIL SIGNUP */
+
+async function emailSignup() {
+
+  const email =
+    document.getElementById("email").value.trim();
+
+  const password =
+    document.getElementById("password").value;
+
+  if (!email || !password) {
+    showAuthMessage("Enter email and password.");
+    return;
+  }
+
+  const { error } =
+    await supabaseClient.auth.signUp({
+      email,
+      password
+    });
+
+  if (error) {
+    showAuthMessage(error.message);
+  } else {
+    showAuthMessage(
+      "Account created. Check your email to confirm your account."
+    );
+  }
+}
+
+
+/* EMAIL LOGIN */
+
+async function emailLogin() {
+
+  const email =
+    document.getElementById("email").value.trim();
+
+  const password =
+    document.getElementById("password").value;
+
+  if (!email || !password) {
+    showAuthMessage("Enter email and password.");
+    return;
+  }
+
+  const { error } =
+    await supabaseClient.auth.signInWithPassword({
+      email,
+      password
+    });
+
+  if (error) {
+    showAuthMessage(error.message);
+  }
+}
+
+
+/* LOGOUT */
+
+async function logout() {
+
+  await supabaseClient.auth.signOut();
+
+  showAuth();
+}
+
+
+/* SUBMIT QUESTION */
+
+async function submitQuestion() {
+
+  const input =
+    document.getElementById("questionInput");
+
+  const question =
+    input.value.trim();
+
+  if (!question) {
+    showAppMessage("Write a question first.");
+    return;
+  }
+
+  const {
+    data: {
+      user
+    }
+  } = await supabaseClient.auth.getUser();
+
+  if (!user) {
+    showAppMessage("Please login again.");
+    return;
+  }
+
+  const { error } =
+    await supabaseClient
+      .from("questions")
+      .insert({
+        question: question,
+        user_id: user.id,
+        status: "pending"
+      });
+
+  if (error) {
+    showAppMessage(error.message);
+    return;
+  }
+
+  input.value = "";
+
+  showAppMessage(
+    "Question submitted successfully!"
+  );
+
+  if ("Notification" in window) {
+
+    if (Notification.permission === "default") {
+      await Notification.requestPermission();
+    }
+
+  }
+
+  loadQuestions();
+}
+
+
+/* LOAD QUESTIONS */
+
+async function loadQuestions() {
+
+  const {
+    data: {
+      user
+    }
+  } = await supabaseClient.auth.getUser();
+
+  if (!user) return;
+
+  const {
+    data,
+    error
+  } = await supabaseClient
+    .from("questions")
+    .select("*")
+    .eq("user_id", user.id)
+    .order("created_at", {
+      ascending: false
+    });
+
+  const list =
+    document.getElementById("questionsList");
+
+  if (error) {
+    list.innerHTML =
+      "<p>" + error.message + "</p>";
+    return;
+  }
+
+  if (!data || data.length === 0) {
+
+    list.innerHTML =
+      "<p style='color:#888'>No questions yet.</p>";
+
+    return;
+  }
+
+  list.innerHTML = "";
+
+  data.forEach(item => {
+
+    const div =
+      document.createElement("div");
+
+    div.className = "question";
+
+    div.innerHTML = `
+
+      <div class="question-text">
+        ${escapeHTML(item.question)}
+      </div>
+
+      <div class="status">
+        Status: ${escapeHTML(item.status || "pending")}
+      </div>
+
+      ${
+        item.answer
+        ?
+        `<div class="answer">
+          <strong>Answer:</strong><br>
+          ${escapeHTML(item.answer)}
+        </div>`
+        :
+        ""
+      }
+
+    `;
+
+    list.appendChild(div);
+
+  });
+}
+
+
+/* AUTH STATE */
+
+async function checkUser() {
+
+  const {
+    data: {
+      session
+    }
+  } = await supabaseClient.auth.getSession();
+
+  if (session) {
+    showApp();
+  } else {
+    showAuth();
+  }
+}
+
+
+supabaseClient.auth.onAuthStateChange(
+  (_event, session) => {
+
+    if (session) {
+      showApp();
+    } else {
+      showAuth();
+    }
+
+  }
+);
+
+
+/* UI */
+
+function showAuth() {
+
+  document
+    .getElementById("authCard")
+    .classList.remove("hidden");
+
+  document
+    .getElementById("appCard")
+    .classList.add("hidden");
+}
+
+
+function showApp() {
+
+  document
+    .getElementById("authCard")
+    .classList.add("hidden");
+
+  document
+    .getElementById("appCard")
+    .classList.remove("hidden");
+
+  loadQuestions();
+}
+
+
+function showAuthMessage(message) {
+
+  document.getElementById("authMessage")
+    .innerHTML =
+      `<div class="message">${escapeHTML(message)}</div>`;
+}
+
+
+function showAppMessage(message) {
+
+  document.getElementById("appMessage")
+    .innerHTML =
+      `<div class="message">${escapeHTML(message)}</div>`;
+}
+
+
+function escapeHTML(text) {
+
+  return String(text)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+
+checkUser();
+
+</script>
+
 </body>
 </html>
