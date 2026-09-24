@@ -9,151 +9,596 @@
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 
 <style>
-*{box-sizing:border-box}
+*{
+  box-sizing:border-box;
+}
+
+:root{
+  --bg:#050506;
+  --panel:rgba(18,18,21,.78);
+  --panel-strong:rgba(20,20,24,.92);
+  --border:rgba(255,255,255,.09);
+  --border-hover:rgba(255,255,255,.16);
+  --text:#f5f5f7;
+  --muted:#8d8d98;
+  --soft:#b8b8c2;
+  --accent:#ffffff;
+  --accent-text:#050505;
+  --input:rgba(7,7,9,.78);
+}
+
+html{
+  min-height:100%;
+  background:var(--bg);
+}
 
 body{
   margin:0;
   min-height:100vh;
-  background:#0b0b0f;
-  color:#fff;
-  font-family:Arial,sans-serif;
+  background:
+    radial-gradient(circle at 50% -10%,rgba(255,255,255,.085),transparent 32%),
+    radial-gradient(circle at 0% 70%,rgba(110,90,255,.055),transparent 30%),
+    radial-gradient(circle at 100% 35%,rgba(255,255,255,.035),transparent 28%),
+    #050506;
+  color:var(--text);
+  font-family:
+    Inter,
+    ui-sans-serif,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Arial,
+    sans-serif;
   display:flex;
   justify-content:center;
   align-items:center;
-  padding:20px
+  padding:28px 18px;
+  position:relative;
+  overflow-x:hidden;
+}
+
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  background:
+    linear-gradient(
+      rgba(255,255,255,.012) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      rgba(255,255,255,.012) 1px,
+      transparent 1px
+    );
+  background-size:42px 42px;
+  mask-image:linear-gradient(to bottom,black,transparent 85%);
 }
 
 .container{
   width:100%;
-  max-width:520px
+  max-width:720px;
+  position:relative;
+  z-index:1;
 }
 
 .card{
-  background:#15151c;
-  border:1px solid #292934;
-  border-radius:20px;
-  padding:28px;
-  box-shadow:0 20px 60px rgba(0,0,0,.35)
+  position:relative;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,.055),
+      rgba(255,255,255,.018) 45%,
+      rgba(255,255,255,.008)
+    ),
+    var(--panel);
+  border:1px solid var(--border);
+  border-radius:26px;
+  padding:34px;
+  box-shadow:
+    0 35px 100px rgba(0,0,0,.55),
+    inset 0 1px 0 rgba(255,255,255,.045);
+  backdrop-filter:blur(24px);
+  -webkit-backdrop-filter:blur(24px);
+  overflow:hidden;
 }
 
-h1{
-  margin:0 0 8px;
-  font-size:30px
+.card::before{
+  content:"";
+  position:absolute;
+  width:260px;
+  height:260px;
+  top:-170px;
+  right:-100px;
+  background:rgba(255,255,255,.06);
+  filter:blur(70px);
+  border-radius:50%;
+  pointer-events:none;
 }
 
-h2{
-  margin-top:30px
-}
-
-.subtitle{
-  color:#9999a8;
-  margin-bottom:25px
-}
-
-input,textarea{
-  width:100%;
-  background:#0d0d12;
-  color:white;
-  border:1px solid #30303b;
-  border-radius:12px;
-  padding:14px;
-  font-size:15px;
-  outline:none;
-  margin-bottom:12px
-}
-
-textarea{
-  min-height:130px;
-  resize:vertical
-}
-
-button{
-  width:100%;
-  border:0;
-  border-radius:12px;
-  padding:14px;
-  font-size:15px;
-  font-weight:bold;
-  cursor:pointer;
-  margin-top:8px
-}
-
-.primary{
-  background:#6c63ff;
-  color:white
-}
-
-.secondary{
-  background:#292934;
-  color:white
-}
-
-.divider{
-  text-align:center;
-  color:#777783;
-  margin:18px 0
+.card::after{
+  content:"";
+  position:absolute;
+  left:30px;
+  right:30px;
+  top:0;
+  height:1px;
+  background:linear-gradient(
+    90deg,
+    transparent,
+    rgba(255,255,255,.18),
+    transparent
+  );
 }
 
 .hidden{
-  display:none
+  display:none !important;
 }
 
-.message{
-  margin-top:15px;
-  padding:12px;
-  border-radius:10px;
-  background:#20202a;
-  color:#ddd;
-  font-size:14px;
-  line-height:1.5
+/* AUTH */
+
+.auth-header{
+  position:relative;
+  z-index:1;
+  margin-bottom:30px;
+}
+
+.eyebrow{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  color:#9e9ea9;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  margin-bottom:14px;
+}
+
+.eyebrow-dot{
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background:#fff;
+  box-shadow:0 0 14px rgba(255,255,255,.65);
+}
+
+h1{
+  margin:0;
+  font-size:clamp(30px,6vw,42px);
+  line-height:1.05;
+  letter-spacing:-.045em;
+  font-weight:750;
+}
+
+.auth-title{
+  max-width:460px;
+}
+
+.subtitle{
+  color:var(--muted);
+  margin:12px 0 0;
+  font-size:15px;
+  line-height:1.6;
 }
 
 .google-box{
   display:flex;
   justify-content:center;
   width:100%;
-  min-height:44px
+  min-height:44px;
+  position:relative;
+  z-index:2;
 }
 
-.question{
-  background:#0d0d12;
-  border:1px solid #292934;
-  border-radius:12px;
-  padding:15px;
-  margin-top:12px
+.divider{
+  display:flex;
+  align-items:center;
+  gap:13px;
+  color:#686872;
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:.15em;
+  margin:23px 0;
 }
 
-.question-text{
-  line-height:1.5;
-  margin-bottom:10px
+.divider::before,
+.divider::after{
+  content:"";
+  flex:1;
+  height:1px;
+  background:linear-gradient(
+    90deg,
+    transparent,
+    rgba(255,255,255,.09)
+  );
 }
 
-.status{
+.divider::after{
+  background:linear-gradient(
+    90deg,
+    rgba(255,255,255,.09),
+    transparent
+  );
+}
+
+/* FORM */
+
+input,
+textarea{
+  width:100%;
+  background:var(--input);
+  color:white;
+  border:1px solid rgba(255,255,255,.09);
+  border-radius:15px;
+  padding:15px 16px;
+  font-family:inherit;
+  font-size:15px;
+  outline:none;
+  margin-bottom:12px;
+  transition:
+    border-color .2s ease,
+    background .2s ease,
+    box-shadow .2s ease,
+    transform .2s ease;
+}
+
+input::placeholder,
+textarea::placeholder{
+  color:#60606b;
+}
+
+input:focus,
+textarea:focus{
+  border-color:rgba(255,255,255,.27);
+  background:rgba(10,10,13,.94);
+  box-shadow:
+    0 0 0 4px rgba(255,255,255,.035),
+    0 10px 35px rgba(0,0,0,.2);
+}
+
+textarea{
+  min-height:145px;
+  resize:vertical;
+  line-height:1.6;
+}
+
+/* BUTTONS */
+
+button{
+  width:100%;
+  border:0;
+  border-radius:14px;
+  padding:14px 16px;
+  font-family:inherit;
+  font-size:14px;
+  font-weight:700;
+  cursor:pointer;
+  margin-top:8px;
+  transition:
+    transform .18s ease,
+    box-shadow .18s ease,
+    background .18s ease,
+    border-color .18s ease;
+}
+
+button:active{
+  transform:scale(.985);
+}
+
+.primary{
+  background:#f4f4f5;
+  color:#080809;
+  box-shadow:
+    0 8px 30px rgba(255,255,255,.07);
+}
+
+.primary:hover{
+  background:#fff;
+  transform:translateY(-1px);
+  box-shadow:
+    0 12px 38px rgba(255,255,255,.11);
+}
+
+.secondary{
+  background:rgba(255,255,255,.045);
+  color:#dedee4;
+  border:1px solid rgba(255,255,255,.085);
+}
+
+.secondary:hover{
+  background:rgba(255,255,255,.075);
+  border-color:var(--border-hover);
+  transform:translateY(-1px);
+}
+
+/* MESSAGES */
+
+.message{
+  margin-top:14px;
+  padding:13px 15px;
+  border-radius:13px;
+  background:rgba(255,255,255,.045);
+  border:1px solid rgba(255,255,255,.07);
+  color:#cfcfd7;
   font-size:13px;
-  color:#9999a8
+  line-height:1.55;
 }
 
-.answer{
-  margin-top:12px;
-  padding-top:12px;
-  border-top:1px solid #292934;
-  color:#d8d8ff;
-  line-height:1.5
+/* APP HEADER */
+
+.app-header{
+  position:relative;
+  z-index:1;
+  margin-bottom:28px;
 }
 
 .topbar{
   display:flex;
   justify-content:space-between;
+  align-items:flex-start;
+  gap:18px;
+}
+
+.topbar-copy{
+  min-width:0;
+}
+
+.app-label{
+  display:flex;
   align-items:center;
-  gap:15px;
-  margin-bottom:20px
+  gap:8px;
+  color:#8f8f99;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.13em;
+  text-transform:uppercase;
+  margin-bottom:10px;
+}
+
+.live-dot{
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  background:#fff;
+  box-shadow:0 0 12px rgba(255,255,255,.7);
+}
+
+.topbar h1{
+  font-size:clamp(28px,5vw,38px);
 }
 
 .logout{
   width:auto;
-  padding:8px 12px;
+  min-width:76px;
+  padding:9px 13px;
   margin:0;
-  font-size:13px
+  font-size:12px;
+  flex-shrink:0;
+}
+
+/* QUESTION AREA */
+
+.question-composer{
+  position:relative;
+  z-index:1;
+  padding:20px;
+  border:1px solid rgba(255,255,255,.07);
+  background:rgba(255,255,255,.025);
+  border-radius:19px;
+  margin-bottom:34px;
+}
+
+.composer-label{
+  color:#d4d4da;
+  font-size:13px;
+  font-weight:700;
+  margin-bottom:11px;
+}
+
+.question-composer textarea{
+  margin-bottom:4px;
+  background:rgba(5,5,7,.72);
+}
+
+#submitButton{
+  margin-top:11px;
+}
+
+/* QUESTIONS */
+
+.questions-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:15px;
+  margin-bottom:14px;
+}
+
+.questions-title{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.questions-title h2{
+  margin:0;
+  font-size:18px;
+  letter-spacing:-.02em;
+}
+
+.question-count-label{
+  color:#65656f;
+  font-size:11px;
+}
+
+#questionsList{
+  position:relative;
+}
+
+#questionsList > p{
+  color:#70707a !important;
+  font-size:13px;
+}
+
+.question{
+  position:relative;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,.045),
+      rgba(255,255,255,.018)
+    );
+  border:1px solid rgba(255,255,255,.075);
+  border-radius:18px;
+  padding:18px;
+  margin-top:12px;
+  box-shadow:
+    0 12px 35px rgba(0,0,0,.18),
+    inset 0 1px 0 rgba(255,255,255,.025);
+  transition:
+    border-color .2s ease,
+    transform .2s ease,
+    background .2s ease;
+}
+
+.question:hover{
+  border-color:rgba(255,255,255,.13);
+  transform:translateY(-1px);
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,.055),
+      rgba(255,255,255,.022)
+    );
+}
+
+.question-text{
+  color:#eeeeF2;
+  line-height:1.65;
+  font-size:14px;
+  margin-bottom:12px;
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
+}
+
+.status{
+  display:inline-flex;
+  align-items:center;
+  padding:5px 9px;
+  border-radius:999px;
+  background:rgba(255,255,255,.045);
+  border:1px solid rgba(255,255,255,.06);
+  font-size:10px;
+  color:#9898a3;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  font-weight:700;
+}
+
+.answer{
+  margin-top:15px;
+  padding:14px 15px;
+  border-top:1px solid rgba(255,255,255,.075);
+  color:#d6d6dc;
+  line-height:1.65;
+  font-size:14px;
+  background:rgba(255,255,255,.018);
+  border-radius:12px;
+}
+
+.answer strong{
+  display:block;
+  color:#fff;
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:.1em;
+  margin-bottom:5px;
+}
+
+/* MOBILE */
+
+@media(max-width:600px){
+
+  body{
+    padding:15px 11px;
+    align-items:flex-start;
+    padding-top:18px;
+  }
+
+  .container{
+    max-width:100%;
+  }
+
+  .card{
+    padding:23px 17px;
+    border-radius:22px;
+  }
+
+  .card::after{
+    left:20px;
+    right:20px;
+  }
+
+  h1{
+    font-size:31px;
+  }
+
+  .topbar{
+    align-items:center;
+  }
+
+  .topbar h1{
+    font-size:28px;
+  }
+
+  .logout{
+    padding:8px 11px;
+  }
+
+  .question-composer{
+    padding:15px;
+  }
+
+  textarea{
+    min-height:135px;
+  }
+
+}
+
+@media(max-width:380px){
+
+  .card{
+    padding:20px 14px;
+  }
+
+  .topbar{
+    gap:10px;
+  }
+
+  .topbar h1{
+    font-size:25px;
+  }
+
+  .logout{
+    font-size:11px;
+    min-width:65px;
+  }
+
+}
+
+/* REDUCED MOTION */
+
+@media(prefers-reduced-motion:reduce){
+
+  *,
+  *::before,
+  *::after{
+    scroll-behavior:auto !important;
+    transition:none !important;
+  }
+
 }
 </style>
 </head>
@@ -162,71 +607,128 @@ button{
 
 <div class="container">
 
+<!-- AUTH SCREEN -->
+
 <div id="authCard" class="card">
 
-<h1>Contact Aditya</h1>
+  <div class="auth-header">
 
-<div class="subtitle">
-Sign in to ask your question.
+    <div class="eyebrow">
+      <span class="eyebrow-dot"></span>
+      Aditya Contact Portal
+    </div>
+
+    <h1 class="auth-title">
+      Contact Aditya.
+    </h1>
+
+    <div class="subtitle">
+      Sign in to ask a question and keep track of your conversation.
+    </div>
+
+  </div>
+
+  <div id="googleButton" class="google-box"></div>
+
+  <div class="divider">OR</div>
+
+  <input
+    id="email"
+    type="email"
+    placeholder="Email address"
+    autocomplete="email"
+  >
+
+  <input
+    id="password"
+    type="password"
+    placeholder="Password"
+    autocomplete="current-password"
+  >
+
+  <button id="loginButton" class="primary">
+    Login
+  </button>
+
+  <button id="signupButton" class="secondary">
+    Create account
+  </button>
+
+  <div id="authMessage"></div>
+
 </div>
 
-<div id="googleButton" class="google-box"></div>
 
-<div class="divider">OR</div>
-
-<input
-id="email"
-type="email"
-placeholder="Email address"
->
-
-<input
-id="password"
-type="password"
-placeholder="Password"
->
-
-<button id="loginButton" class="primary">
-Login
-</button>
-
-<button id="signupButton" class="secondary">
-Create account
-</button>
-
-<div id="authMessage"></div>
-
-</div>
-
+<!-- APP SCREEN -->
 
 <div id="appCard" class="card hidden">
 
-<div class="topbar">
+  <div class="app-header">
 
-<h1>Ask a Question</h1>
+    <div class="topbar">
 
-<button id="logoutButton" class="secondary logout">
-Logout
-</button>
+      <div class="topbar-copy">
 
-</div>
+        <div class="app-label">
+          <span class="live-dot"></span>
+          Private Q&A
+        </div>
 
-<textarea
-id="questionInput"
-placeholder="Write your question here..."
-></textarea>
+        <h1>Ask a Question</h1>
 
-<button id="submitButton" class="primary">
-Send Question
-</button>
+      </div>
 
-<div id="appMessage"></div>
+      <button id="logoutButton" class="secondary logout">
+        Logout
+      </button>
 
-<h2>My Questions</h2>
+    </div>
 
-<div id="questionsList">
-Loading...
-</div>
+    <div class="subtitle">
+      Send your question directly to Aditya.
+    </div>
+
+  </div>
+
+
+  <div class="question-composer">
+
+    <div class="composer-label">
+      Your question
+    </div>
+
+    <textarea
+      id="questionInput"
+      placeholder="What do you want to ask?"
+    ></textarea>
+
+    <button id="submitButton" class="primary">
+      Send Question
+    </button>
+
+    <div id="appMessage"></div>
+
+  </div>
+
+
+  <div class="questions-header">
+
+    <div class="questions-title">
+
+      <h2>My Questions</h2>
+
+      <span class="question-count-label">
+        Private conversation history
+      </span>
+
+    </div>
+
+  </div>
+
+
+  <div id="questionsList">
+    Loading...
+  </div>
 
 </div>
 
