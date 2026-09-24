@@ -1,193 +1,354 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Aditya Admin Panel</title>
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <style>
+  <title>Aditya Admin Panel</title>  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>  <style>
     * {
       box-sizing: border-box;
     }
 
+    html {
+      min-height: 100%;
+      background: #050505;
+    }
+
     body {
       margin: 0;
+      min-height: 100vh;
       font-family: Arial, sans-serif;
-      background: #f5f7fb;
-      color: #111827;
-      padding: 20px;
+      color: #f5f5f5;
+      padding: 28px 18px 50px;
+      background:
+        radial-gradient(circle at 15% 10%, rgba(255,255,255,0.055), transparent 28%),
+        radial-gradient(circle at 85% 15%, rgba(255,255,255,0.04), transparent 25%),
+        linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px),
+        #050505;
+      background-size: auto, auto, 42px 42px, 42px 42px, auto;
     }
 
     .container {
-      max-width: 900px;
+      width: 100%;
+      max-width: 920px;
       margin: 0 auto;
-    }
-
-    h1 {
-      margin-bottom: 6px;
-    }
-
-    .subtitle {
-      color: #6b7280;
-      margin-bottom: 25px;
     }
 
     .topbar {
       display: flex;
       justify-content: space-between;
+      align-items: flex-start;
+      gap: 18px;
+      margin-bottom: 28px;
+      flex-wrap: wrap;
+    }
+
+    .title-wrap {
+      min-width: 0;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(28px, 5vw, 42px);
+      line-height: 1.08;
+      letter-spacing: -1.4px;
+      color: #ffffff;
+    }
+
+    .subtitle {
+      color: #8f8f8f;
+      margin-top: 10px;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    .live {
+      display: inline-flex;
       align-items: center;
-      gap: 12px;
-      margin-bottom: 20px;
+      gap: 6px;
+      vertical-align: middle;
+      margin-left: 8px;
+      padding: 6px 10px;
+      border: 1px solid rgba(74, 222, 128, 0.25);
+      border-radius: 999px;
+      background: rgba(34, 197, 94, 0.10);
+      color: #86efac;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      box-shadow: 0 0 20px rgba(34, 197, 94, 0.06);
+    }
+
+    .live::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #4ade80;
+      box-shadow: 0 0 10px rgba(74, 222, 128, 0.8);
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 9px;
       flex-wrap: wrap;
     }
 
     button {
       border: none;
-      border-radius: 8px;
-      padding: 11px 16px;
+      border-radius: 11px;
+      padding: 12px 17px;
       cursor: pointer;
-      font-size: 15px;
-      font-weight: 600;
+      font-size: 14px;
+      font-weight: 700;
+      transition:
+        transform 0.18s ease,
+        background 0.18s ease,
+        border-color 0.18s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    button:active {
+      transform: translateY(0);
     }
 
     .logout {
-      background: #111827;
-      color: white;
+      background: rgba(255,255,255,0.07);
+      color: #ffffff;
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+
+    .logout:hover {
+      background: rgba(255,255,255,0.11);
     }
 
     .refresh {
-      background: #2563eb;
-      color: white;
+      background: #ffffff;
+      color: #050505;
+      border: 1px solid #ffffff;
+    }
+
+    .refresh:hover {
+      background: #e8e8e8;
+    }
+
+    .message {
+      padding: 13px 15px;
+      border-radius: 12px;
+      margin-bottom: 18px;
+      display: none;
+      border: 1px solid transparent;
+      font-size: 14px;
+      line-height: 1.45;
+      backdrop-filter: blur(14px);
+    }
+
+    .error {
+      background: rgba(127, 29, 29, 0.24);
+      color: #fca5a5;
+      border-color: rgba(248, 113, 113, 0.20);
+    }
+
+    .success {
+      background: rgba(20, 83, 45, 0.24);
+      color: #86efac;
+      border-color: rgba(74, 222, 128, 0.20);
     }
 
     .question-card {
-      background: white;
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 16px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+      position: relative;
+      overflow: hidden;
+      background:
+        linear-gradient(
+          145deg,
+          rgba(255,255,255,0.075),
+          rgba(255,255,255,0.035)
+        );
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 18px;
+      padding: 22px;
+      margin-bottom: 17px;
+      box-shadow:
+        0 18px 50px rgba(0,0,0,0.28),
+        inset 0 1px 0 rgba(255,255,255,0.035);
+      backdrop-filter: blur(18px);
+    }
+
+    .question-card::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 1px;
+      background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255,255,255,0.22),
+        transparent
+      );
     }
 
     .question {
       font-size: 17px;
-      line-height: 1.5;
-      margin-bottom: 12px;
+      line-height: 1.65;
+      margin-bottom: 15px;
+      color: #f5f5f5;
       white-space: pre-wrap;
+      overflow-wrap: anywhere;
     }
 
     .meta {
-      font-size: 13px;
-      color: #6b7280;
-      margin-bottom: 15px;
+      font-size: 12px;
+      line-height: 1.65;
+      color: #777777;
+      margin-bottom: 16px;
+      overflow-wrap: anywhere;
     }
 
     .status {
-      display: inline-block;
-      padding: 5px 9px;
-      border-radius: 6px;
-      background: #fff3cd;
-      color: #856404;
-      font-size: 13px;
-      font-weight: 600;
-      margin-bottom: 15px;
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(234, 179, 8, 0.10);
+      border: 1px solid rgba(250, 204, 21, 0.18);
+      color: #fde68a;
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      text-transform: capitalize;
     }
 
     textarea {
+      display: block;
       width: 100%;
-      min-height: 100px;
+      min-height: 115px;
       resize: vertical;
-      padding: 12px;
-      border: 1px solid #d1d5db;
-      border-radius: 8px;
+      padding: 14px;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 12px;
+      outline: none;
+      background: rgba(0,0,0,0.25);
+      color: #ffffff;
       font-size: 15px;
       font-family: inherit;
-      margin-bottom: 10px;
+      line-height: 1.55;
+      margin-bottom: 11px;
+      transition:
+        border-color 0.18s ease,
+        background 0.18s ease,
+        box-shadow 0.18s ease;
+    }
+
+    textarea::placeholder {
+      color: #666666;
+    }
+
+    textarea:focus {
+      border-color: rgba(255,255,255,0.32);
+      background: rgba(0,0,0,0.38);
+      box-shadow: 0 0 0 3px rgba(255,255,255,0.045);
     }
 
     .answer-btn {
-      background: #16a34a;
-      color: white;
+      background: #ffffff;
+      color: #050505;
+      border: 1px solid #ffffff;
+      padding: 12px 18px;
+    }
+
+    .answer-btn:hover {
+      background: #e8e8e8;
     }
 
     .answer {
       margin-top: 12px;
-      padding: 12px;
-      background: #f0fdf4;
-      border-radius: 8px;
-      line-height: 1.5;
+      padding: 16px;
+      background: rgba(255,255,255,0.045);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      color: #d7d7d7;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
     }
 
-    .message {
-      padding: 12px;
-      border-radius: 8px;
-      margin-bottom: 15px;
-      display: none;
-    }
-
-    .error {
-      background: #fee2e2;
-      color: #991b1b;
-    }
-
-    .success {
-      background: #dcfce7;
-      color: #166534;
+    .answer strong {
+      color: #ffffff;
     }
 
     .empty {
-      background: white;
-      padding: 25px;
-      border-radius: 12px;
-      color: #6b7280;
+      background:
+        linear-gradient(
+          145deg,
+          rgba(255,255,255,0.065),
+          rgba(255,255,255,0.025)
+        );
+      border: 1px solid rgba(255,255,255,0.09);
+      padding: 30px 20px;
+      border-radius: 18px;
+      color: #777777;
       text-align: center;
+      line-height: 1.5;
+      backdrop-filter: blur(16px);
     }
 
-    .live {
-      display: inline-block;
-      margin-left: 8px;
-      padding: 5px 9px;
-      border-radius: 20px;
-      background: #dcfce7;
-      color: #166534;
-      font-size: 12px;
-      font-weight: 600;
+    @media (max-width: 620px) {
+      body {
+        padding: 20px 13px 40px;
+      }
+
+      .topbar {
+        margin-bottom: 22px;
+      }
+
+      h1 {
+        font-size: 30px;
+      }
+
+      .live {
+        font-size: 10px;
+        padding: 5px 8px;
+      }
+
+      .top-actions {
+        width: 100%;
+      }
+
+      .top-actions button {
+        flex: 1;
+      }
+
+      .question-card {
+        padding: 18px;
+        border-radius: 16px;
+      }
+
+      .question {
+        font-size: 16px;
+      }
     }
-  </style>
-</head>
-
-<body>
-
-<div class="container">
-
-  <div class="topbar">
-    <div>
+  </style></head><body><div class="container">  <div class="topbar">
+    <div class="title-wrap">
       <h1>
         Aditya Admin Panel
         <span class="live">LIVE</span>
-      </h1>
-
-      <div class="subtitle">
-        Manage questions submitted by users
-      </div>
-    </div>
-
-    <div>
-      <button class="refresh" id="refreshBtn">Refresh</button>
-      <button class="logout" id="logoutBtn">Logout</button>
-    </div>
+      </h1>  <div class="subtitle">
+    Manage questions submitted by users
   </div>
-
-  <div id="message" class="message"></div>
-
-  <div id="questionsContainer">
-    <div class="empty">Loading questions...</div>
-  </div>
-
 </div>
 
-<script>
+<div class="top-actions">
+  <button class="refresh" id="refreshBtn">Refresh</button>
+  <button class="logout" id="logoutBtn">Logout</button>
+</div>
+
+  </div>  <div id="message" class="message"></div>  <div id="questionsContainer">
+    <div class="empty">Loading questions...</div>
+  </div></div><script>
   const SUPABASE_URL =
     "https://sklysjwjztklmbaxwjtj.supabase.co";
 
@@ -333,138 +494,137 @@
             <textarea
               id="answer-${q.id}"
               placeholder="Write your answer here..."
-            ></textarea>
-
-            <button
-              class="answer-btn"
-              onclick="submitAnswer(${q.id})"
-            >
-              Send Answer
-            </button>
-          `
-        }
-
-      `;
-
-      container.appendChild(card);
-    });
-  }
-
-  async function submitAnswer(questionId) {
-
-    const textarea =
-      document.getElementById(
-        "answer-" + questionId
-      );
-
-    if (!textarea) return;
-
-    const answer =
-      textarea.value.trim();
-
-    if (!answer) {
-
-      showMessage(
-        "Please write an answer first.",
-        "error"
-      );
-
-      return;
+            ></textarea>        <button
+          class="answer-btn"
+          onclick="submitAnswer(${q.id})"
+        >
+          Send Answer
+        </button>
+      `
     }
 
-    const { error } =
-      await supabaseClient
-        .from("questions")
-        .update({
-          answer: answer,
-          status: "answered"
-        })
-        .eq("id", questionId);
+  `;
 
-    if (error) {
+  container.appendChild(card);
+});
+
+}
+
+async function submitAnswer(questionId) {
+
+const textarea =
+  document.getElementById(
+    "answer-" + questionId
+  );
+
+if (!textarea) return;
+
+const answer =
+  textarea.value.trim();
+
+if (!answer) {
+
+  showMessage(
+    "Please write an answer first.",
+    "error"
+  );
+
+  return;
+}
+
+const { error } =
+  await supabaseClient
+    .from("questions")
+    .update({
+      answer: answer,
+      status: "answered"
+    })
+    .eq("id", questionId);
+
+if (error) {
+
+  showMessage(
+    "Could not save answer: " +
+    error.message,
+    "error"
+  );
+
+  return;
+}
+
+showMessage(
+  "Answer saved successfully!",
+  "success"
+);
+
+await loadQuestions();
+
+}
+
+document
+.getElementById("refreshBtn")
+.addEventListener(
+"click",
+loadQuestions
+);
+
+document
+.getElementById("logoutBtn")
+.addEventListener(
+"click",
+async () => {
+
+    await supabaseClient.auth.signOut();
+
+    window.location.href =
+      "index.html";
+  }
+);
+
+async function startRealtime() {
+
+const allowed =
+  await checkAdmin();
+
+if (!allowed) return;
+
+supabaseClient
+  .channel("admin-questions")
+  .on(
+    "postgres_changes",
+    {
+      event: "INSERT",
+      schema: "public",
+      table: "questions"
+    },
+    payload => {
 
       showMessage(
-        "Could not save answer: " +
-        error.message,
-        "error"
+        "New question received!",
+        "success"
       );
 
-      return;
+      loadQuestions();
     }
+  )
+  .on(
+    "postgres_changes",
+    {
+      event: "UPDATE",
+      schema: "public",
+      table: "questions"
+    },
+    payload => {
 
-    showMessage(
-      "Answer saved successfully!",
-      "success"
-    );
+      loadQuestions();
+    }
+  )
+  .subscribe();
 
-    await loadQuestions();
-  }
+}
 
-  document
-    .getElementById("refreshBtn")
-    .addEventListener(
-      "click",
-      loadQuestions
-    );
+loadQuestions();
+startRealtime();
 
-  document
-    .getElementById("logoutBtn")
-    .addEventListener(
-      "click",
-      async () => {
-
-        await supabaseClient.auth.signOut();
-
-        window.location.href =
-          "index.html";
-      }
-    );
-
-  async function startRealtime() {
-
-    const allowed =
-      await checkAdmin();
-
-    if (!allowed) return;
-
-    supabaseClient
-      .channel("admin-questions")
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "questions"
-        },
-        payload => {
-
-          showMessage(
-            "New question received!",
-            "success"
-          );
-
-          loadQuestions();
-        }
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "questions"
-        },
-        payload => {
-
-          loadQuestions();
-        }
-      )
-      .subscribe();
-  }
-
-  loadQuestions();
-  startRealtime();
-
-</script>
-
-</body>
+</script></body>
 </html>
