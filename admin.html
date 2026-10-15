@@ -342,8 +342,7 @@
   const SUPABASE_ANON_KEY =
     "sb_publishable_ZtJM6KEEhaGrClvzLkJXpg_Usb7T0ZK";
 
-  const ADMIN_ID =
-    "01d5205d-a9c3-4a83-90da-fde7ad021f01";
+    const ADMIN_EMAIL = "828477ww@gmail.com";
 
   const supabaseClient =
     window.supabase.createClient(
@@ -384,7 +383,7 @@
       return false;
     }
 
-    if (session.user.id !== ADMIN_ID) {
+        if ((session.user.email || "").toLowerCase() !== ADMIN_EMAIL) {
 
       container.innerHTML =
         '<div class="empty">Access denied. This account is not the admin.</div>';
